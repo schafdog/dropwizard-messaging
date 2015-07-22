@@ -1,5 +1,7 @@
 package com.example.helloworld;
 
+import com.bendb.dropwizard.redis.JedisBundle;
+import com.bendb.dropwizard.redis.JedisFactory;
 import com.example.helloworld.auth.ExampleAuthenticator;
 import com.example.helloworld.cli.RenderCommand;
 import com.example.helloworld.core.Person;
@@ -14,7 +16,7 @@ import com.example.helloworld.resources.PeopleResource;
 import com.example.helloworld.resources.PersonResource;
 import com.example.helloworld.resources.ProtectedResource;
 import com.example.helloworld.resources.ViewResource;
-import com.google.common.collect.ImmutableMap;
+
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.auth.AuthFactory;
@@ -30,7 +32,11 @@ import io.dropwizard.views.ViewBundle;
 
 import java.util.Map;
 
+import redis.clients.jedis.JedisPool;
+
 public class HelloWorldApplication extends Application<HelloWorldConfiguration> {
+	
+	RedisSubscriber subscriber; 
     public static void main(String[] args) throws Exception {
         new HelloWorldApplication().run(args);
     }
@@ -73,13 +79,24 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
                 return configuration.getViewRendererConfiguration();
             }
         });
-    }
+        
+        bootstrap.addBundle(new JedisBundle<HelloWorldConfiguration>() {
+            @Override
+            public JedisFactory getJedisFactory(HelloWorldConfiguration configuration) {
+                return configuration.getJedisFactory();
+            }
+        });
+        
+        subscriber = new RedisSubscriber(new JedisPool("localhost"));
+        Thread thread = new Thread(subscriber);
+        subscriber.setThread(thread);
+    }        
 
     @Override
     public void run(HelloWorldConfiguration configuration, Environment environment) {
         final PersonDAO dao = new PersonDAO(hibernateBundle.getSessionFactory());
         final Template template = configuration.buildTemplate();
-
+        
         environment.healthChecks().register("template", new TemplateHealthCheck(template));
         environment.jersey().register(DateRequiredFeature.class);
 
@@ -92,5 +109,6 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
         environment.jersey().register(new PeopleResource(dao));
         environment.jersey().register(new PersonResource(dao));
         environment.jersey().register(new FilteredResource());
+        //environment.lifecycle().manage(subscriber);
     }
 }

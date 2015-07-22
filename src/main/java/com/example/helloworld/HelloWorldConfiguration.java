@@ -1,14 +1,19 @@
 package com.example.helloworld;
 
+import com.bendb.dropwizard.redis.JedisFactory;
 import com.example.helloworld.core.Template;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
+
 import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
+
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Context;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -25,6 +30,10 @@ public class HelloWorldConfiguration extends Configuration {
     
     @NotNull
     private Map<String, Map<String, String>> viewRendererConfiguration = Collections.emptyMap();
+
+    @NotNull
+    @Context
+    private JedisFactory jedisFactory = new JedisFactory();
 
     @JsonProperty
     public String getTemplate() {
@@ -65,6 +74,16 @@ public class HelloWorldConfiguration extends Configuration {
         return viewRendererConfiguration;
     }
 
+    @JsonProperty("redis")
+    public JedisFactory getJedisFactory() {
+        return jedisFactory;
+    }
+
+    @JsonProperty("redis")
+    public void setRedisFactory(JedisFactory factory) {
+        jedisFactory = factory;
+    }
+    
     @JsonProperty("viewRendererConfiguration")
     public void setViewRendererConfiguration(Map<String, Map<String, String>> viewRendererConfiguration) {
         ImmutableMap.Builder<String, Map<String, String>> builder = ImmutableMap.builder();

@@ -109,6 +109,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+        	<groupId>com.bendb.dropwizard</groupId>
+        	<artifactId>dropwizard-redis</artifactId>
+        	<version>0.8.1-0</version>
+        </dependency>
     </dependencies>
 
     <build>
