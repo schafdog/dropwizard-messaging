@@ -14,3 +14,15 @@ server:
   adminConnectors:
     - type: http
       port: 0
+      
+redis:
+  # The redis server's address; required.
+  endpoint: localhost:6379
+  # Auth password for redis server connection.  (default: null)
+  password: null
+  # The minimum number of idle connections to maintain in the pool.  (default: 0)
+  minIdle: 10
+  # The maximum number of idle connections allowed in the pool.  (default: 0)
+  maxIdle: 20
+  # The maximum number of connections allowed in the pool.  (default: 1024)
+  maxTotal: 1024
