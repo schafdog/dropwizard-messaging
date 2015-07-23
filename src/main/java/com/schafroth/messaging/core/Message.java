@@ -8,6 +8,9 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 @Entity
@@ -21,7 +24,7 @@ import java.util.Objects;
 public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private String id;
 
     @Column(name = "payload", nullable = false)
     private String payload;
@@ -35,11 +38,13 @@ public class Message {
         this.time = time;
     }
 
-    public long getId() {
+    @JsonProperty("UUID")
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    @JsonProperty("UUID")
+    public void setId(String id) {
         this.id = id;
     }
 
