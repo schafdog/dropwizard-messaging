@@ -59,8 +59,7 @@ public class JsonResource {
     public List<JsonNode> list() 
     {
     	List<JsonNode> results = new LinkedList<JsonNode>();
-    	try (Jedis jedis = pool.getResource()) 
-    	{
+    	try (Jedis jedis = pool.getResource()) {
     		String cursor = "0";
     		ObjectMapper m = new ObjectMapper();
     		do {
@@ -68,7 +67,8 @@ public class JsonResource {
     			cursor = scan.getStringCursor();
     			for (String key : scan.getResult()) {
     				try {
-    					results.add(m.readTree(jedis.get(key)));
+    					String value = jedis.get(key);
+    					results.add(m.readTree(value));
     				} catch (JsonProcessingException e) {
     					e.printStackTrace();
     				} catch (IOException e) {
