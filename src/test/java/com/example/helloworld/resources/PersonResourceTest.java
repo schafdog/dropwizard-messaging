@@ -1,31 +1,41 @@
 package com.example.helloworld.resources;
 
-import com.example.helloworld.core.Person;
-import com.example.helloworld.db.PersonDAO;
-import com.google.common.base.Optional;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import io.dropwizard.testing.junit.ResourceTestRule;
+
+import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
 
-import javax.ws.rs.core.Response;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.example.helloworld.core.Person;
+import com.fasterxml.jackson.databind.JsonNode;
+
 
 /**
  * Unit tests for {@link PersonResource}.
  */
 public class PersonResourceTest {
-    private static final PersonDAO DAO = mock(PersonDAO.class);
+    private static final Jedis jedis = mock(Jedis.class);
+    private static final JedisPool jedisPool = mock(JedisPool.class);
     @ClassRule
     public static final ResourceTestRule RULE = ResourceTestRule.builder()
-            .addResource(new PersonResource(DAO))
+            .addResource(new JsonResource(jedisPool))
             .setTestContainerFactory(new GrizzlyWebTestContainerFactory())
             .build();
     private Person person;
@@ -38,25 +48,39 @@ public class PersonResourceTest {
 
     @After
     public void tearDown() {
-        reset(DAO);
+        reset(jedisPool);
+        reset(jedis);
     }
 
-    @Test
-    public void getPersonSuccess() {
-        when(DAO.findById(1L)).thenReturn(Optional.of(person));
+	@Test
+    public void postSuccess() {
+    	String channel = "channel";
+    	final String message = UUID.randomUUID().toString();
+    	when(jedisPool.getResource()).thenReturn(jedis);
+    	when(jedis.publish(channel, (String) argThat(new ArgumentMatcher<String>() {
+    		public boolean matches(Object msgObject) {
+    			return msgObject instanceof String && msgObject.equals(message);
+    		}
+    	}))).thenReturn(1l);
 
-        Person found = RULE.getJerseyTest().target("/people/1").request().get(Person.class);
+    	/*
+        final Response response = RULE.client().target("/message")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(message, MediaType.APPLICATION_JSON_TYPE));
+        */
+        JsonNode found = RULE.getJerseyTest().target("/message/1").request().get(JsonNode.class);
 
-        assertThat(found.getId()).isEqualTo(person.getId());
-        verify(DAO).findById(1L);
+        assertThat(found.path("UUID")).isEqualTo(message);
+        verify(jedis).get("1");
     }
 
-    @Test
-    public void getPersonNotFound() {
-        when(DAO.findById(2L)).thenReturn(Optional.<Person>absent());
+    @SuppressWarnings("unchecked")
+	@Test
+    public void postFailed() {
+        when(jedis.publish(anyString(), anyString())).thenThrow(RuntimeException.class);
         final Response response = RULE.getJerseyTest().target("/people/2").request().get();
 
         assertThat(response.getStatusInfo().getStatusCode()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
-        verify(DAO).findById(2L);
+        verify(jedis).get("2");
     }
 }
