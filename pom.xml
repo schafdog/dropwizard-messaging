@@ -114,6 +114,11 @@
         	<artifactId>dropwizard-redis</artifactId>
         	<version>0.8.1-0</version>
         </dependency>
+        <dependency>
+        	<groupId>org.eclipse.jetty.websocket</groupId>
+        	<artifactId>javax-websocket-server-impl</artifactId>
+        	<version>9.2.9.v20150224</version>
+        </dependency>
     </dependencies>
 
     <build>
