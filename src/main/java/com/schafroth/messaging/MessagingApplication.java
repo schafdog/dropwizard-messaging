@@ -15,7 +15,10 @@ import io.dropwizard.views.ViewBundle;
 
 import java.util.Map;
 
+import javax.servlet.ServletRegistration;
+
 import redis.clients.jedis.JedisPool;
+import ch.qos.logback.classic.Logger;
 
 import com.bendb.dropwizard.redis.JedisBundle;
 import com.bendb.dropwizard.redis.JedisFactory;
@@ -50,7 +53,7 @@ public class MessagingApplication extends Application<MessagingConfiguration> {
 
     @Override
     public String getName() {
-        return "hello-world";
+        return "messaging-app";
     }
 
     @Override
@@ -62,7 +65,6 @@ public class MessagingApplication extends Application<MessagingConfiguration> {
                         new EnvironmentVariableSubstitutor(false)
                 )
         );
-
         bootstrap.addCommand(new RenderCommand());
         bootstrap.addBundle(new AssetsBundle());
         bootstrap.addBundle(new MigrationsBundle<MessagingConfiguration>() {
@@ -91,7 +93,7 @@ public class MessagingApplication extends Application<MessagingConfiguration> {
     public void run(MessagingConfiguration configuration, Environment environment) {
         final Template template = configuration.buildTemplate();
         final JedisPool pool = configuration.getJedisFactory().build(environment);
-        subscriber = new RedisSubscriber(pool);
+        subscriber = new RedisSubscriber(pool, null);
 
         environment.healthChecks().register("template", new TemplateHealthCheck(template));
         environment.jersey().register(DateRequiredFeature.class);
@@ -106,6 +108,20 @@ public class MessagingApplication extends Application<MessagingConfiguration> {
         environment.jersey().register(new PersonResource(pool));
         environment.jersey().register(new FilteredResource());
         environment.lifecycle().manage(subscriber);
+        
+        final ServletRegistration.Dynamic websocket = environment.servlets().addServlet(
+                "websocket",
+                new MessagingWebSocketServlet(
+                		/*
+                        environment.getObjectMapper(), 
+                        environment.metrics(),
+                        configuration.getWebSocketFactory()
+                        */
+                )
+        );
+        websocket.setAsyncSupported(true);
+        websocket.addMapping("/websocket/*");
+
 
     }
 }
