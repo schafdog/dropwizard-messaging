@@ -21,8 +21,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
-import com.schafroth.messaging.HelloWorldApplication;
-import com.schafroth.messaging.HelloWorldConfiguration;
+import com.schafroth.messaging.MessagingApplication;
+import com.schafroth.messaging.MessagingConfiguration;
 import com.schafroth.messaging.core.Message;
 import com.schafroth.messaging.core.Saying;
 
@@ -32,8 +32,8 @@ public class IntegrationTest {
     private static final String CONFIG_PATH = ResourceHelpers.resourceFilePath("test-example.yml");
 
     @ClassRule
-    public static final DropwizardAppRule<HelloWorldConfiguration> RULE = new DropwizardAppRule<>(
-            HelloWorldApplication.class, CONFIG_PATH,
+    public static final DropwizardAppRule<MessagingConfiguration> RULE = new DropwizardAppRule<>(
+            MessagingApplication.class, CONFIG_PATH,
             ConfigOverride.config("database.url", "jdbc:h2:" + TMP_FILE));
 
     private Client client;

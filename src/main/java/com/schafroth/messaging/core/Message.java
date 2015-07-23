@@ -11,11 +11,11 @@ import javax.persistence.Table;
 import java.util.Objects;
 
 @Entity
-@Table(name = "people")
+@Table(name = "message")
 @NamedQueries({
         @NamedQuery(
-                name = "com.example.helloworld.core.Person.findAll",
-                query = "SELECT p FROM Person p"
+                name = "com.schafroth.messaging.core.Message.list",
+                query = "SELECT m FROM Message m"
         )
 })
 public class Message {

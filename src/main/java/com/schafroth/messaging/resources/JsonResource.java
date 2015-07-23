@@ -59,7 +59,8 @@ public class JsonResource {
     public List<JsonNode> list() 
     {
     	List<JsonNode> results = new LinkedList<JsonNode>();
-    	try (Jedis jedis = pool.getResource()) {
+    	try (Jedis jedis = pool.getResource()) 
+    	{
     		String cursor = "0";
     		ObjectMapper m = new ObjectMapper();
     		do {

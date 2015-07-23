@@ -59,7 +59,7 @@ public class PersonResourceTest {
     	String channel = "channel";
     	final String message = UUID.randomUUID().toString();
     	when(jedisPool.getResource()).thenReturn(jedis);
-    	when(jedis.publish(channel, (String) argThat(new ArgumentMatcher<String>() {
+    	when(jedis.publish(anyObject(), (String) argThat(new ArgumentMatcher<String>() {
     		public boolean matches(Object msgObject) {
     			return msgObject instanceof String && msgObject.equals(message);
     		}

@@ -27,16 +27,19 @@ public class PeopleResource {
 
     @POST
     @UnitOfWork
-    public Message createPerson(Message message, @Context Jedis jedis) {
-    	jedisPool.set(message);
+    public Message createPerson(Message message) {
+    	try (Jedis jedis = jedisPool.getResource()) {
+    		jedis.set(String.valueOf(message.getId()), message.getPayload());
+    	}
         //jedis.publish("person", newPerson.toString());
-        //return person;
+        return message;
     }
 
     @GET
     @UnitOfWork
     public List<Message> listPeople() {
-        return peopleDAO.findAll();
+    	// TODO 
+    	return null;
     }
 
 }

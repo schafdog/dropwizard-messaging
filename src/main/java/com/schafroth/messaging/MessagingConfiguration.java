@@ -17,7 +17,7 @@ import javax.ws.rs.core.Context;
 import java.util.Collections;
 import java.util.Map;
 
-public class HelloWorldConfiguration extends Configuration {
+public class MessagingConfiguration extends Configuration {
     @NotEmpty
     private String template;
 

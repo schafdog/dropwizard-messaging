@@ -1,7 +1,7 @@
 package com.schafroth.messaging.cli;
 
 import com.google.common.base.Optional;
-import com.schafroth.messaging.HelloWorldConfiguration;
+import com.schafroth.messaging.MessagingConfiguration;
 import com.schafroth.messaging.core.Template;
 
 import io.dropwizard.cli.ConfiguredCommand;
@@ -13,7 +13,7 @@ import net.sourceforge.argparse4j.inf.Subparser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RenderCommand extends ConfiguredCommand<HelloWorldConfiguration> {
+public class RenderCommand extends ConfiguredCommand<MessagingConfiguration> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RenderCommand.class);
 
     public RenderCommand() {
@@ -31,9 +31,9 @@ public class RenderCommand extends ConfiguredCommand<HelloWorldConfiguration> {
     }
 
     @Override
-    protected void run(Bootstrap<HelloWorldConfiguration> bootstrap,
+    protected void run(Bootstrap<MessagingConfiguration> bootstrap,
                        Namespace namespace,
-                       HelloWorldConfiguration configuration) throws Exception {
+                       MessagingConfiguration configuration) throws Exception {
         final Template template = configuration.buildTemplate();
 
         if (namespace.getBoolean("include-default")) {

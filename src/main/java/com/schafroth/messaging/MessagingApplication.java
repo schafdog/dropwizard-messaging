@@ -33,17 +33,17 @@ import com.schafroth.messaging.resources.PersonResource;
 import com.schafroth.messaging.resources.ProtectedResource;
 import com.schafroth.messaging.resources.ViewResource;
 
-public class HelloWorldApplication extends Application<HelloWorldConfiguration> {
+public class MessagingApplication extends Application<MessagingConfiguration> {
 	
 	RedisSubscriber subscriber; 
     public static void main(String[] args) throws Exception {
-        new HelloWorldApplication().run(args);
+        new MessagingApplication().run(args);
     }
 
-    private final HibernateBundle<HelloWorldConfiguration> hibernateBundle =
-            new HibernateBundle<HelloWorldConfiguration>(Message.class) {
+    private final HibernateBundle<MessagingConfiguration> hibernateBundle =
+            new HibernateBundle<MessagingConfiguration>(Message.class) {
                 @Override
-                public DataSourceFactory getDataSourceFactory(HelloWorldConfiguration configuration) {
+                public DataSourceFactory getDataSourceFactory(MessagingConfiguration configuration) {
                     return configuration.getDataSourceFactory();
                 }
             };
@@ -54,7 +54,7 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
     }
 
     @Override
-    public void initialize(Bootstrap<HelloWorldConfiguration> bootstrap) {
+    public void initialize(Bootstrap<MessagingConfiguration> bootstrap) {
         // Enable variable substitution with environment variables
         bootstrap.setConfigurationSourceProvider(
                 new SubstitutingSourceProvider(
@@ -65,30 +65,30 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 
         bootstrap.addCommand(new RenderCommand());
         bootstrap.addBundle(new AssetsBundle());
-        bootstrap.addBundle(new MigrationsBundle<HelloWorldConfiguration>() {
+        bootstrap.addBundle(new MigrationsBundle<MessagingConfiguration>() {
             @Override
-            public DataSourceFactory getDataSourceFactory(HelloWorldConfiguration configuration) {
+            public DataSourceFactory getDataSourceFactory(MessagingConfiguration configuration) {
                 return configuration.getDataSourceFactory();
             }
         });
         bootstrap.addBundle(hibernateBundle);
-        bootstrap.addBundle(new ViewBundle<HelloWorldConfiguration>() {
+        bootstrap.addBundle(new ViewBundle<MessagingConfiguration>() {
             @Override
-            public Map<String, Map<String, String>> getViewConfiguration(HelloWorldConfiguration configuration) {
+            public Map<String, Map<String, String>> getViewConfiguration(MessagingConfiguration configuration) {
                 return configuration.getViewRendererConfiguration();
             }
         });
         
-        bootstrap.addBundle(new JedisBundle<HelloWorldConfiguration>() {
+        bootstrap.addBundle(new JedisBundle<MessagingConfiguration>() {
             @Override
-            public JedisFactory getJedisFactory(HelloWorldConfiguration configuration) {
+            public JedisFactory getJedisFactory(MessagingConfiguration configuration) {
                 return configuration.getJedisFactory();
             }
         });
     }        
 
     @Override
-    public void run(HelloWorldConfiguration configuration, Environment environment) {
+    public void run(MessagingConfiguration configuration, Environment environment) {
         final Template template = configuration.buildTemplate();
         final JedisPool pool = configuration.getJedisFactory().build(environment);
         subscriber = new RedisSubscriber(pool);

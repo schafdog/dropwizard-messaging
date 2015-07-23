@@ -59,8 +59,8 @@ logging:
   # Logger-specific levels.
   loggers:
 
-    # Sets the level for 'com.example.app' to DEBUG.
-    com.example.app: DEBUG
+    # Sets the level for 'com.schafroth.app' to DEBUG.
+    com.schafroth.app: DEBUG
 
     org.hibernate.SQL: ALL
 
