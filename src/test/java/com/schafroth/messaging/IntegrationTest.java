@@ -74,13 +74,12 @@ public class IntegrationTest {
 
     @Test
     public void testPostMessage() throws Exception {
-        final Message person = new Message("IntegrationTest", new Date().getTime());
+        final Message person = new Message("IntegrationTest", null);
         final Message newPerson = client.target("http://localhost:" + RULE.getLocalPort() + "/message")
-                .request()
-                .post(Entity.entity(person, MediaType.APPLICATION_JSON_TYPE))
+                .request().post(Entity.entity(person, MediaType.APPLICATION_JSON_TYPE))
                 .readEntity(Message.class);
         assertThat(newPerson.getId()).isNotNull();
         assertThat(newPerson.getPayload()).isEqualTo(person.getPayload());
-        assertThat(newPerson.getTime()).isEqualTo(person.getTime());
+        assertThat(newPerson.getTime() != null);
     }
 }
