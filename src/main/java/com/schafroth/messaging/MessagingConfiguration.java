@@ -8,6 +8,7 @@ import com.schafroth.messaging.core.Template;
 import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
 
+import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.Valid;
@@ -35,6 +36,8 @@ public class MessagingConfiguration extends Configuration {
     @Context
     private JedisFactory jedisFactory = new JedisFactory();
 
+    private WebSocketServletFactory webSocketServletFactory; 
+    
     @JsonProperty
     public String getTemplate() {
         return template;
@@ -84,6 +87,16 @@ public class MessagingConfiguration extends Configuration {
         jedisFactory = factory;
     }
     
+    @JsonProperty("websocket")
+    public WebSocketServletFactory getWebSocketFactory() {
+        return webSocketServletFactory;
+    }
+
+    @JsonProperty("websocket")
+    public void setWebSocketFactory(WebSocketServletFactory factory) {
+        this.webSocketServletFactory = factory;
+    }
+
     @JsonProperty("viewRendererConfiguration")
     public void setViewRendererConfiguration(Map<String, Map<String, String>> viewRendererConfiguration) {
         ImmutableMap.Builder<String, Map<String, String>> builder = ImmutableMap.builder();
