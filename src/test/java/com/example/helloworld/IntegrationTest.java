@@ -1,21 +1,27 @@
 package com.example.helloworld;
 
-import com.example.helloworld.core.Person;
-import com.example.helloworld.core.Saying;
-import com.google.common.base.Optional;
+import static org.assertj.core.api.Assertions.assertThat;
 import io.dropwizard.testing.ConfigOverride;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
-import org.junit.*;
+
+import java.io.File;
+import java.io.IOException;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
-import java.io.File;
-import java.io.IOException;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import com.example.helloworld.core.Person;
+import com.example.helloworld.core.Saying;
+import com.google.common.base.Optional;
 
 public class IntegrationTest {
 
@@ -42,6 +48,7 @@ public class IntegrationTest {
     @After
     public void tearDown() throws Exception {
         client.close();
+        
     }
 
     private static String createTempFile() {
@@ -63,9 +70,9 @@ public class IntegrationTest {
     }
 
     @Test
-    public void testPostPerson() throws Exception {
+    public void testPostMessage() throws Exception {
         final Person person = new Person("Dr. IntegrationTest", "Chief Wizard");
-        final Person newPerson = client.target("http://localhost:" + RULE.getLocalPort() + "/people")
+        final Person newPerson = client.target("http://localhost:" + RULE.getLocalPort() + "/message")
                 .request()
                 .post(Entity.entity(person, MediaType.APPLICATION_JSON_TYPE))
                 .readEntity(Person.class);
