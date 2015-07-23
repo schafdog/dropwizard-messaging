@@ -1,18 +1,24 @@
 package com.example.helloworld;
 
+import io.dropwizard.lifecycle.Managed;
+
 import javax.ws.rs.core.Context;
+
+import org.apache.commons.lang3.NotImplementedException;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPubSub;
-import io.dropwizard.lifecycle.Managed;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class RedisSubscriber implements Runnable, Managed {
 
 	private JedisPool pool;
 	private Jedis sub; 
 	private boolean running = false;
-	private Thread thread;
+	private Thread thread = new Thread(this, "RedisSubscriberThread");
 	
 	RedisSubscriber(@Context JedisPool pool) {
 		this.pool = pool;
@@ -20,9 +26,6 @@ public class RedisSubscriber implements Runnable, Managed {
 	}
 	static final long startMillis = System.currentTimeMillis();	
 
-	void setThread(Thread thread) {
-		this.thread = thread;
-	}
 	private JedisPubSub setupSubscriber() {
 		final JedisPubSub jedisPubSub = new JedisPubSub() {
 			@Override
@@ -37,21 +40,30 @@ public class RedisSubscriber implements Runnable, Managed {
 
 			@Override
 			public void onPUnsubscribe(String pattern, int subscribedChannels) {
+				throw new NotImplementedException("onPUnsubscribe not implemented");
 			}
 
 			@Override
 			public void onPSubscribe(String pattern, int subscribedChannels) {
+				throw new NotImplementedException("onPSubscribe not implemented");
 			}
 
 			@Override
 			public void onPMessage(String pattern, String channel, String message) {
+				throw new NotImplementedException("onPMessage not implemented");
 			}
 
 			@Override
 			public void onMessage(String channel, String message) {
-				try (Jedis jedis = pool.getResource()) {
-					// Store message 
-					jedis.set(message, message);
+				ObjectMapper mapper = new ObjectMapper();
+				try {
+					JsonNode rootNode = mapper.readTree(message);
+					try (Jedis jedis = pool.getResource()) {
+						// Store message 
+						jedis.set(rootNode.path("UUID").asText(), message);
+					}
+				} catch (Exception ex) {
+					throw new RuntimeException("Failed to parse JSON: " + message, ex);
 				}
 			};
 		};
@@ -63,11 +75,12 @@ public class RedisSubscriber implements Runnable, Managed {
 		running = true;  
 		while (running) {
 			try {
-				pool.getResource().subscribe(setupSubscriber(), "person");
-			} catch (Exception ie) {
-				
+				sub.subscribe(setupSubscriber(), "person");
+			} catch (Exception ex) {
+				log("Exception in subscribe: " + ex.getMessage(), ex);
 			}
 		}
+		log("Ending RedisSubscriber");
 	}
 
 	@Override
@@ -78,9 +91,6 @@ public class RedisSubscriber implements Runnable, Managed {
 	@Override
 	public void stop() throws Exception {
 		running = false;
-		sub.quit();
-		thread.join();
-		pool.returnResource(sub);
 	}
 	
 	private static void log(String string, Object... args) {
