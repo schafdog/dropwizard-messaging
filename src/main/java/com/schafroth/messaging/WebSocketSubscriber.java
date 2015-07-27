@@ -2,8 +2,8 @@ package com.schafroth.messaging;
 
 
 public class WebSocketSubscriber implements MessageHandler {
-	private MessagingWebSocketEndpoint endpoint;
-	public WebSocketSubscriber(MessagingWebSocketEndpoint endpoint) {
+	private Jsr356WebSocketEndpoint endpoint;
+	public WebSocketSubscriber(Jsr356WebSocketEndpoint endpoint) {
 		this.endpoint = endpoint;
 	}
 
