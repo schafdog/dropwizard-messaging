@@ -3,20 +3,13 @@ package com.schafroth.messaging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPubSub;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class MessageJedisPubSub extends JedisPubSub {
+public abstract class AbstractSubscriber extends JedisPubSub {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
-	private JedisPool pool;
 	
-	public MessageJedisPubSub(JedisPool pool) {
-		this.pool = pool;
-	}
 	@Override
 	public void onUnsubscribe(String channel, int subscribedChannels) {
 		logger.debug("onUnsubscribe");
@@ -43,14 +36,13 @@ public class MessageJedisPubSub extends JedisPubSub {
 	}
 
 	@Override
-	public void onMessage(String channel, String message) {
+	abstract public void onMessage(String channel, String message);
+
+	public void logger(String channel, String message) {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			JsonNode rootNode = mapper.readTree(message);
-			try (Jedis jedis = pool.getResource()) {
-				// Store message
-				jedis.set(rootNode.path("UUID").asText(), message);
-			}
+			mapper.readTree(message);
+			logger.debug("Channel " + channel + ": " + message);
 		} catch (Exception ex) {
 			throw new RuntimeException("Failed to parse JSON: " + message, ex);
 		}
