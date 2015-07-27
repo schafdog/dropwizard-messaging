@@ -17,10 +17,8 @@ public class MessagingWebSocketServlet extends WebSocketServlet {
 		this.pool = pool;
 	}
 	
-	
 	@Override
 	public void configure(WebSocketServletFactory factory) {
-		//factory.register(MessagingWebSocketEndpoint.class);		
 		factory.setCreator(new JedisPoolWebSocketCreator(pool));
 	}
 	
