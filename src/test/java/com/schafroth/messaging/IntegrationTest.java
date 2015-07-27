@@ -15,6 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Optional;
 import com.schafroth.messaging.core.Message;
 import com.schafroth.messaging.core.Saying;
@@ -55,13 +56,26 @@ public class IntegrationTest {
     }
 
     @Test
-    public void testPostMessage() throws Exception {
-        final Message person = new Message("IntegrationTest", null);
-        final Message newPerson = client.target("http://localhost:" + RULE.getLocalPort() + "/message")
-                .request().post(Entity.entity(person, MediaType.APPLICATION_JSON_TYPE))
-                .readEntity(Message.class);
-        assertThat(newPerson.getId()).isNotNull();
-        assertThat(newPerson.getPayload()).isEqualTo(person.getPayload());
-        assertThat(newPerson.getTime() != null);
+    public void testListMessages() throws Exception {
+        final JsonNode messages = client.target("http://localhost:" + RULE.getLocalPort() + "/message")
+                .request().get(JsonNode.class);
+        /*
+        assertThat(message.path("")).isNotNull();
+        assertThat(message.getPayload()).isEqualTo(postMessage.getPayload());
+        assertThat(message.getTime() != null);
+        */
+        Thread.sleep(5000);
     }
+
+    @Test
+    public void testPostMessage() throws Exception {
+        final Message postMessage = new Message("IntegrationTest", null);
+        final Message message = client.target("http://localhost:" + RULE.getLocalPort() + "/message")
+                .request().post(Entity.entity(postMessage, MediaType.APPLICATION_JSON_TYPE))
+                .readEntity(Message.class);
+        assertThat(message.getId()).isNotNull();
+        assertThat(message.getPayload()).isEqualTo(postMessage.getPayload());
+        assertThat(message.getTime() != null);
+    }
+    
 }

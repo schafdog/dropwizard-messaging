@@ -77,16 +77,17 @@ public class JsonResource {
     			ScanResult<String> scan = jedis.scan(cursor);
     			cursor = scan.getStringCursor();
     			for (String key : scan.getResult()) {
+    				String value = null;
     				try {
-    					String value = jedis.get(key);
-    					LOGGER.debug("Redis: " + key + "=" + value);
+    					value = jedis.get(key);
+    					LOGGER.info("Redis: " + key + "=" + value);
     					results.add(m.readTree(value));
     				} catch (JedisDataException e) {
-    					e.printStackTrace();
+    					LOGGER.error("Failed to parse key " + key + " or " + value, e);
     				} catch (JsonProcessingException e) {
-    					e.printStackTrace();
+    					LOGGER.error("Failed to JSon Process key " + key + " or " + value, e);
     				} catch (IOException e) {
-    					e.printStackTrace();
+    					LOGGER.error("IOException key " + key + " or " + value, e);
     				}
     			}
     		}
