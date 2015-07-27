@@ -13,9 +13,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.ScanResult;
+import redis.clients.jedis.exceptions.JedisDataException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,6 +29,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Path("/message")
 @Produces(MediaType.APPLICATION_JSON)
 public class JsonResource {
+	private static Logger LOGGER = LoggerFactory.getLogger(JsonResource.class);  
 	JedisPool pool; 
     public JsonResource(JedisPool jedisPool) {
     	pool = jedisPool; 
@@ -36,7 +41,7 @@ public class JsonResource {
     	((ObjectNode)json).put("time", System.currentTimeMillis());
     	
     	try (Jedis jedis = pool.getResource()) {
-    		jedis.publish("person", json.toString());
+    		jedis.publish("message", json.toString());
     		System.out.println("Active: " + pool.getNumActive());
     		return json;
     	}
@@ -49,7 +54,7 @@ public class JsonResource {
     	((ObjectNode)json).put("time", System.currentTimeMillis());
     	
     	try (Jedis jedis = pool.getResource()) {
-    		jedis.publish("person", json.toString());
+    		jedis.publish("message", json.toString());
     		System.out.println("Active: " + pool.getNumActive());
     		return json;
     	}
@@ -68,7 +73,10 @@ public class JsonResource {
     			for (String key : scan.getResult()) {
     				try {
     					String value = jedis.get(key);
+    					LOGGER.debug("Redis: " + key + "=" + value);
     					results.add(m.readTree(value));
+    				} catch (JedisDataException e) {
+    					e.printStackTrace();
     				} catch (JsonProcessingException e) {
     					e.printStackTrace();
     				} catch (IOException e) {
