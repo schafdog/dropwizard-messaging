@@ -61,6 +61,7 @@ logging:
 
     # Sets the level for 'com.schafroth.app' to DEBUG.
     com.schafroth.app: DEBUG
+    com.schafroth.messagging: DEBUG
 
     org.hibernate.SQL: ALL
 
