@@ -52,7 +52,11 @@ public class RedisSubscriber extends AbstractSubscriber implements Runnable, Man
 	@Override
 	public void stop() throws Exception {
 		running = false;
-		sub.quit();
+		try {
+			sub.quit();
+		} catch (Exception ex) {
+			logger.warn("Caught Exception while shutting down. Ignoring: " + ex.getMessage());
+		}
 	}
 	
 	private void log(String string, Object... args) {
