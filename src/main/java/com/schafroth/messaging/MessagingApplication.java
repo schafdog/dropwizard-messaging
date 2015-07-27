@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.servlet.ServletRegistration;
 
 import redis.clients.jedis.JedisPool;
+import be.tomcools.dropwizard.websocket.WebsocketBundle;
 
 import com.bendb.dropwizard.redis.JedisBundle;
 import com.bendb.dropwizard.redis.JedisFactory;
@@ -35,6 +36,7 @@ import com.schafroth.messaging.resources.ProtectedResource;
 import com.schafroth.messaging.resources.ViewResource;
 
 public class MessagingApplication extends Application<MessagingConfiguration> {
+	private WebsocketBundle websocket = new WebsocketBundle();
 	
 	RedisSubscriber subscriber; 
     public static void main(String[] args) throws Exception {
@@ -54,7 +56,8 @@ public class MessagingApplication extends Application<MessagingConfiguration> {
         return "messaging-app";
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public void initialize(Bootstrap<MessagingConfiguration> bootstrap) {
         // Enable variable substitution with environment variables
         bootstrap.setConfigurationSourceProvider(
@@ -80,6 +83,7 @@ public class MessagingApplication extends Application<MessagingConfiguration> {
                 return configuration.getJedisFactory();
             }
         });
+        bootstrap.addBundle(websocket);
     }        
 
     @Override
@@ -88,7 +92,12 @@ public class MessagingApplication extends Application<MessagingConfiguration> {
         final JedisPool pool = configuration.getJedisFactory().build(environment);
         JedisPoolFactory.getInstance().setPool(pool);
         subscriber = new RedisSubscriber(pool, new PersistHandler(pool));
-
+        websocket.addEndpoint(Jsr356WebSocketEndpoint.class);
+        
+        //programmatic endpoint
+        //ServerEndpointConfig serverEndpointConfig = ServerEndpointConfig.Builder.create(ProgrammaticServerEndpoint.class, "/programmatic").build();
+        //websocket.addEndpoint(serverEndpointConfig);
+        
         environment.healthChecks().register("template", new TemplateHealthCheck(template));
         environment.jersey().register(DateRequiredFeature.class);
 
