@@ -8,20 +8,20 @@ import redis.clients.jedis.JedisPool;
 
 public class JedisPoolWebSocketCreator implements WebSocketCreator {
 	
-	private JedisPool pool; 
+	MultiWebSocketEndpoint endpoint;
+	
 	public JedisPoolWebSocketCreator(JedisPool pool) {
-		this.pool = pool;
+		endpoint = new MultiWebSocketEndpoint(pool);
 	}
 
 	@Override
     public Object createWebSocket(ServletUpgradeRequest req, ServletUpgradeResponse resp) {
         for (String subprotocol : req.getSubProtocols()) {
             if ("binary".equals(subprotocol)) {
-                // resp.setAcceptedSubProtocol(subprotocol);
                 return null;
             }
         }
-        //resp.setAcceptedSubProtocol("text");
-        return new MessagingWebSocketEndpoint(pool);
+        // Return singleton since it handles multiple endpoints
+        return endpoint;
     }
 }
