@@ -35,21 +35,24 @@ public class JsonResource {
     	pool = jedisPool; 
     }
 
+    /* 
+     * REST service to publish new message on a Redis PubSub channel
+     */  
     @POST
     public JsonNode create(JsonNode json) {
-    	((ObjectNode)json).put("UUID", UUID.randomUUID().toString());
-    	((ObjectNode)json).put("time", System.currentTimeMillis());
-    	
-    	try (Jedis jedis = pool.getResource()) {
-    		jedis.publish("message", json.toString());
-    		System.out.println("Active: " + pool.getNumActive());
-    		return json;
-    	}
+    	return createUpdate(json, UUID.randomUUID().toString());
     }
 
-    @PUT
+    /* 
+     * REST service to publish new/update message on a Redis PubSub channel
+     */  
+	@PUT
     @Path("{id}")
     public JsonNode update(JsonNode json, @PathParam("id") String id) {
+		return createUpdate(json, id);
+    }
+
+    private JsonNode createUpdate(JsonNode json, String id) {
     	((ObjectNode)json).put("UUID", id);
     	((ObjectNode)json).put("time", System.currentTimeMillis());
     	
@@ -58,8 +61,11 @@ public class JsonResource {
     		System.out.println("Active: " + pool.getNumActive());
     		return json;
     	}
-    }
+	}
 
+    /* REST service to list persisted messages 
+     *  
+     */
     @GET
     public List<JsonNode> list() 
     {
