@@ -25,6 +25,7 @@ public class PersistHandler implements MessageHandler {
 			JsonNode rootNode = mapper.readTree(message);
 			try (Jedis jedis = pool.getResource()) {
 				// Store message
+				logger.debug("Redis store message " +  message);
 				jedis.set(rootNode.path("UUID").asText(), message);
 			}
 		} catch (Exception ex) {
