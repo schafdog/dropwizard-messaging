@@ -4,40 +4,44 @@ import io.dropwizard.lifecycle.Managed;
 
 import javax.ws.rs.core.Context;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPubSub;
-import ch.qos.logback.classic.Logger;
 
-public class RedisSubscriber implements Runnable, Managed {
+public class RedisSubscriber extends AbstractSubscriber implements Runnable, Managed {
 
-	private JedisPool pool;
+	//private JedisPool pool;
 	private Jedis sub; 
 	private boolean running = false;
 	private Thread thread = new Thread(this, "RedisSubscriberThread");
-	private Logger logger;
-	RedisSubscriber(@Context JedisPool pool, Logger logger) {
-		this.pool = pool;
-		this.logger = logger;
+	private MessageHandler handler;
+	private Logger logger = LoggerFactory.getLogger(RedisSubscriber.class);
+	final long startMillis = System.currentTimeMillis();	
+
+	RedisSubscriber(@Context JedisPool pool, MessageHandler handler) {
+		//this.pool = pool;
+		this.handler = handler;
 		sub = pool.getResource();
 	}
-	static final long startMillis = System.currentTimeMillis();	
+	
+	public void setThreadName(String name) {
+		thread.setName(name);
+	}
 
-	private JedisPubSub setupSubscriber() {
-		return new MessageJedisPubSub(pool);
-	};
-		
 	@Override
 	public void run() {
 		running = true;  
 		while (running) {
 			try {
-				sub.subscribe(setupSubscriber(), "person");
+				sub.subscribe(this, "message");
 			} catch (Exception ex) {
-				log("Exception in subscribe: " + ex.getMessage(), ex);
+				ex.printStackTrace();
+				log("Exception in subscribe: " + ex.getMessage());
 			}
 		}
-		log("Ending RedisSubscriber");
+		log("Ending " + thread.getName());
 	}
 
 	@Override
@@ -48,12 +52,22 @@ public class RedisSubscriber implements Runnable, Managed {
 	@Override
 	public void stop() throws Exception {
 		running = false;
+		sub.quit();
 	}
 	
-	private static void log(String string, Object... args) {
+	private void log(String string, Object... args) {
 		long millisSinceStart = System.currentTimeMillis() - startMillis;
-		System.out.printf("%20s %6d %s\n", Thread.currentThread().getName(), millisSinceStart,
-				String.format(string, args));
+		logger.info(Thread.currentThread().getName() + " " + millisSinceStart + " " + String.format(string, args));
+	}
+
+	@Override
+	public void onMessage(String channel, String message) 
+	{
+		try {
+			handler.onMessage(channel, message);
+		} catch (Exception ex) {
+			logger.error("Failed to handle message " + message + " on channel " + channel);
+		}
 	}
 
 }
