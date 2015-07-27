@@ -8,7 +8,6 @@ import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.hibernate.HibernateBundle;
-import io.dropwizard.migrations.MigrationsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.views.ViewBundle;
@@ -18,7 +17,6 @@ import java.util.Map;
 import javax.servlet.ServletRegistration;
 
 import redis.clients.jedis.JedisPool;
-import ch.qos.logback.classic.Logger;
 
 import com.bendb.dropwizard.redis.JedisBundle;
 import com.bendb.dropwizard.redis.JedisFactory;
@@ -66,13 +64,8 @@ public class MessagingApplication extends Application<MessagingConfiguration> {
                 )
         );
         bootstrap.addCommand(new RenderCommand());
-        bootstrap.addBundle(new AssetsBundle());
-        bootstrap.addBundle(new MigrationsBundle<MessagingConfiguration>() {
-            @Override
-            public DataSourceFactory getDataSourceFactory(MessagingConfiguration configuration) {
-                return configuration.getDataSourceFactory();
-            }
-        });
+        bootstrap.addBundle(new AssetsBundle("/assets", "/static"));
+
         bootstrap.addBundle(hibernateBundle);
         bootstrap.addBundle(new ViewBundle<MessagingConfiguration>() {
             @Override
@@ -93,7 +86,8 @@ public class MessagingApplication extends Application<MessagingConfiguration> {
     public void run(MessagingConfiguration configuration, Environment environment) {
         final Template template = configuration.buildTemplate();
         final JedisPool pool = configuration.getJedisFactory().build(environment);
-        subscriber = new RedisSubscriber(pool, null);
+        JedisPoolFactory.getInstance().setPool(pool);
+        subscriber = new RedisSubscriber(pool, new PersistHandler(pool));
 
         environment.healthChecks().register("template", new TemplateHealthCheck(template));
         environment.jersey().register(DateRequiredFeature.class);
@@ -111,14 +105,7 @@ public class MessagingApplication extends Application<MessagingConfiguration> {
         
         final ServletRegistration.Dynamic websocket = environment.servlets().addServlet(
                 "websocket",
-                new MessagingWebSocketServlet(
-                		/*
-                        environment.getObjectMapper(), 
-                        environment.metrics(),
-                        configuration.getWebSocketFactory()
-                        */
-                )
-        );
+                new MessagingWebSocketServlet(pool));
         websocket.setAsyncSupported(true);
         websocket.addMapping("/websocket/*");
 
