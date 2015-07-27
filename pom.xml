@@ -8,7 +8,7 @@
     <artifactId>dropwizard-example</artifactId>
     <version>0.8.1</version>
     <groupId>io.dropwizard</groupId>
-    <name>Dropwizard Example Application</name>
+    <name>Dropwizard Messaging Application</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -72,7 +72,12 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
+	<dependency>
+	  <groupId>be.tomcools</groupId>
+	  <artifactId>dropwizard-websocket-jee7-bundle</artifactId>
+	  <version>1.0.0</version>
+	</dependency>        
+	<dependency>
             <groupId>org.glassfish.jersey.test-framework.providers</groupId>
             <artifactId>jersey-test-framework-provider-inmemory</artifactId>
             <version>${jersey.version}</version>
