@@ -12,80 +12,101 @@
 	<div id="output">
 		<p>Output</p>
 	</div>
+ <table id="table">
+  <thead>
+   <tr>
+    <th>Time</th>
+    <th>Message</th>
+   </tr>
+  </thead>
+  <tbody>
+   <td>1234</td>
+   <td>Message</td>
+  </tbody>
+ </table>
+
 </body>
 
-<script type="text/javascript">
-	var webSocket;
-	var output = document.getElementById("output");
-	var connectBtn = document.getElementById("connectBtn");
-	var sendBtn = document.getElementById("sendBtn");
-    var wsUri = "ws://localhost:8080/websocket";
+<script>
+var webSocket;
+var output = document.getElementById("output");
+var table  = document.getElementById("table");
+var connectBtn = document.getElementById("connectBtn");
+var sendBtn = document.getElementById("sendBtn");
+var wsUri = "ws://localhost:8080/websocket";
 
-	function toogle() {
-		// open the connection if one does not exist
-		if (webSocket !== undefined
-				&& webSocket.readyState == WebSocket.OPEN) {
-			closeSocket();
+function newEvent(message) {
+  var connectObject = {};
+  connectObject['time'] = new Date().getTime();
+  connectObject['payload'] = message;
+  return connectObject
+}
+
+function toogle() {
+ // open the connection if one does not exist
+ if (webSocket !== undefined
+   && webSocket.readyState == WebSocket.OPEN) {
+   closeSocket();
             return;
-		}
-		// Create a websocket
-		webSocket = new WebSocket(wsUri);
+ }
+ // Create a websocket
+ webSocket = new WebSocket(wsUri);
 
-		webSocket.onopen = function(event) {
-			updateOutput("Connected!");
-            connectBtn.setAttribute('value', 'Disconnect');
-			sendBtn.disabled = false;
+ webSocket.onopen = function(event) {
+  connectBtn.setAttribute('value', 'Disconnect');
+  sendBtn.disabled = false;
+  var connectObject = newEvent('Connected');
+  updateOutput(connectObject);
+ };
 
-		};
+ webSocket.onmessage = function(event) {
+  updateOutput(JSON.parse(event.data));
+ };
 
-		webSocket.onmessage = function(event) {
-			updateOutput(event.data);
-		};
+ webSocket.onclose = function(event) {
+  connectBtn.setAttribute('value', 'Connect');
+  sendBtn.disabled = true;
+  updateOutput(newEvent("Connection Closed"));
+ };
+}
 
-		webSocket.onclose = function(event) {
-			updateOutput("Connection Closed");
-            connectBtn.setAttribute('value', 'Connect');
-			sendBtn.disabled = true;
-		};
-	}
+function send() {
+ var text = document.getElementById("input").value;
+ webSocket.send(text);
+}
 
-	function send() {
-		var text = document.getElementById("input").value;
-		webSocket.send(text);
-	}
+function closeSocket() {
+ webSocket.close();
+ webSocket.onclose();
+}
 
-	function closeSocket() {
-      webSocket.close();
-      webSocket.onclose();
-	}
+function updateTable(text) {
+ var row = table.insertRow(1);
+ var cell1 = row.insertCell(0);
+ var cell2 = row.insertCell(1);
+ cell1.innerHTML = text.time;
+ cell2.innerHTML = JSON.stringify(text); 
+}
 
-	function updateTable(text) {
-		var row = table.insertRow(0);
-        var cell1 = row.insertCell(0);
-        var cell2 = row.insertCell(1);
-        cell1.innerHTML = text.UUID;
-        cell2.innerHTML = text; 
-	}
-
-    function updateOutput(text) {
-      output.innerHTML = text
-    }
+function updateOutput(obj) {
+ output.innerHTML = JSON.stringify(obj);
+ updateTable(obj);
+}
  
-    function refreshView() {
-     var table = document.getElementById("tableview");
-     for (var i = 0, row; row = table.rows[i]; i++) {
-         var date = new Date();
-         if (row.cell[0] > date.getTime()) {
-            table.deleteRow(i)
-            i--;
-         }
-         //columns would be accessed using the "col" variable assigned in the for loop
-       }
-     }  
-    }
+function refreshView() {
+ var epoch = new Date().getTime() - 10000;
+ for (var i = 1, row; row = table.rows[i]; i++) {
+  var messageTime = row.cells[0].innerHTML;
+  if (messageTime < epoch) {
+   table.deleteRow(i)
+   i--;
+  }
+ }
+}  
  
-    var myVar=setInterval(function () {refreshView()}, 1000);
-    toogle();
+var myVar=setInterval(function () {refreshView()}, 2000);
+toogle();
 
 </script>
+
 </html>
