@@ -36,6 +36,8 @@ To test the example application run the following commands.
 	curl -H "Content-Type: application/json" -X POST -d '{"fullName":"Other Person","jobTitle":"Other Title"}' http://falconsocial.schafroth.dk/message
 
 The server will atttach a UUID and time stamp to the message before publishing it and returning it to the client.
+
+A server process is monitoring part of the file system for changes and posting these in the messaging application.
 	
 * To list all persisted data in JSON format browse:
 
