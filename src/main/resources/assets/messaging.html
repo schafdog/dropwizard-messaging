@@ -95,7 +95,7 @@ function updateOutput(obj) {
 }
  
 function refreshView() {
- var epoch = new Date().getTime() - 10000;
+ var epoch = new Date().getTime() - 30000;
  for (var i = 1, row; row = table.rows[i]; i++) {
   var messageTime = row.cells[0].innerHTML;
   if (messageTime < epoch) {
