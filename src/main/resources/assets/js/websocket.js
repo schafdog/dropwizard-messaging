@@ -1,58 +1,70 @@
-
-var wsUri = "ws://localhost:8080/websocket/";
+var webSocket;
 var output = document.getElementById("output");
+var table  = document.getElementById("table");
+var connectBtn = document.getElementById("connectBtn");
+var sendBtn = document.getElementById("sendBtn");
+var wsUri = "ws://localhost:8080/websocket";
 
-function init(wsUrl, element) {
-	output = element;
-	wsUri = wsUrl;
-	return testWebSocket();
-}
+function toogle() {
+	// open the connection if one does not exist
+	if (webSocket !== undefined
+			&& webSocket.readyState == WebSocket.OPEN) {
+			closeSocket();
+            return;
+	}
+	// Create a websocket
+	webSocket = new WebSocket(wsUri);
 
-function testWebSocket() {
-	websocket = new WebSocket(wsUri);
-	websocket.onopen = function(evt) {
-		onOpen(evt)
+	webSocket.onopen = function(event) {
+		updateOutput("Connected!");
+		connectBtn.setAttribute('value', 'Disconnect');
+		sendBtn.disabled = false;
+
 	};
-	websocket.onclose = function(evt) {
-		onClose(evt)
+
+	webSocket.onmessage = function(event) {
+		updateOutput(event.data);
 	};
-	websocket.onmessage = function(evt) {
-		onMessage(evt)
+
+	webSocket.onclose = function(event) {
+		updateOutput("Connection Closed");
+		connectBtn.setAttribute('value', 'Connect');
+		sendBtn.disabled = true;
 	};
-	websocket.onerror = function(evt) {
-		onError(evt)
-	};
-	return websocket;
 }
 
-function onOpen(evt) {
-	writeToScreen("CONNECTED");
-	doSend("WebSocket rocks");
+function send() {
+	var text = document.getElementById("input").value;
+	webSocket.send(text);
 }
 
-function onClose(evt) {
-	writeToScreen("DISCONNECTED");
+function closeSocket() {
+	webSocket.close();
+	webSocket.onclose();
 }
 
-function onMessage(evt) {
-	//writeToScreen('<span style="color: blue;">Last Message: ' + evt.data + '</span>');
-	output.innerHTML = evt.data;
-	doSend("WebSocket rocks");
+function updateTable(text) {
+	var row = table.insertRow(0);
+	var cell1 = row.insertCell(0);
+	var cell2 = row.insertCell(1);
+	cell1.innerHTML = text.UUID;
+	cell2.innerHTML = text; 
 }
 
-function onError(evt) {
-	writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+function updateOutput(text) {
+	output.innerHTML = text
+	updateTable(text);
 }
-
-function doSend(message) {
-	writeToScreen("SENDING: " + message);
-	websocket.send(message);
-	writeToScreen("SENT: " + message);
-}
-
-function writeToScreen(message) {
-	var pre = document.createElement("p");
-	pre.style.wordWrap = "break-word";
-	pre.innerHTML = message;
-	output.appendChild(pre);
-}
+ 
+function refreshView() {
+	var date = new Date();
+	for (var i = 0, row; row = table.rows[i]; i++) {
+		if (row.cell[0]+60000 > date.getTime()) {
+			table.deleteRow(i)
+            i--;
+        }
+	}
+}  
+ 
+var myVar=setInterval(function () {refreshView()}, 1000);
+toogle();
