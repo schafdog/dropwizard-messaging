@@ -33,7 +33,7 @@ var output = document.getElementById("output");
 var table  = document.getElementById("table");
 var connectBtn = document.getElementById("connectBtn");
 var sendBtn = document.getElementById("sendBtn");
-var wsUri = "ws://localhost:8080/websocket";
+var wsUri = "ws://" + window.location.host + "/websocket";
 
 function newEvent(message) {
   var connectObject = {};
