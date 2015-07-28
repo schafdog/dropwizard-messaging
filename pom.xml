@@ -5,7 +5,7 @@
         <maven>3.0.0</maven>
     </prerequisites>
 
-    <artifactId>dropwizard-example</artifactId>
+    <artifactId>dropwizard-messaging</artifactId>
     <version>0.8.1</version>
     <groupId>io.dropwizard</groupId>
     <name>Dropwizard Messaging Application</name>
