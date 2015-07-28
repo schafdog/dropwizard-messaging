@@ -13,6 +13,11 @@ import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import redis.clients.jedis.JedisPool;
 
 /* 
@@ -59,7 +64,15 @@ public class MultiWebSocketEndpoint implements MessageHandler {
 	@OnWebSocketMessage
     public void onText(Session session, String message) throws IOException {
 		LOGGER.info("Got Message on WebSocket: " + message + "(" + session.getRemoteAddress() + ")" + " Endpoint: " + this);
-		onMessage("message", message + "@" + new Date().getTime());  
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			JsonNode rootNode = mapper.readTree(message);
+			((ObjectNode) rootNode).put("time", new Date().getTime());
+			((ObjectNode) rootNode).put("from", session.getRemoteAddress().toString());
+			onMessage("broadcast", rootNode.toString());  
+		} catch (JsonProcessingException jpe) {
+			LOGGER.error("Failed to JSON parse message: " + message);
+		}
 	}
 
 	@OnWebSocketClose
