@@ -12,7 +12,7 @@
 	<div id="output">
 		<p>Output</p>
 	</div>
- <table id="table">
+ <table id="table" border="1">
   <thead>
    <tr>
     <th>Time</th>
@@ -21,7 +21,7 @@
   </thead>
   <tbody>
    <td>1234</td>
-   <td>Message</td>
+   <td>Dummy Message</td>
   </tbody>
  </table>
 
@@ -72,7 +72,8 @@ function toogle() {
 
 function send() {
  var text = document.getElementById("input").value;
- webSocket.send(text);
+ var obj = newEvent(text);
+ webSocket.send(JSON.stringify(obj));
 }
 
 function closeSocket() {
